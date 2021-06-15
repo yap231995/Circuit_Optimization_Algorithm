@@ -3,7 +3,9 @@ import random
 import heapq
 from util import *
 
-def HW_Row_more_than_one(matrix, m, n):
+def HW_Row_more_than_one(matrix):
+    m = len(matrix)  # Number of Rows
+    n = len(matrix[0])  # Number of Columns
     for i in range(m): #For each Row
         HW_row = 0
         for j in range(n): #For each Column in that Row
@@ -33,17 +35,11 @@ def Feasible(H, gd):
 def Feasible_Update(matrix, goal_depth_r, depth_lst, s, c1,c2,r):
     if matrix[r][c1] == 1 and matrix[r][c2] == 1:
         H = []
-        print("c1: "+str(c1))
-        print("c2: "+str(c2))
         for col in range(s-1):
-
             if col != c1 and col != c2: ##Dont include {c1,c2} because we want to assume that they have been used.
-                print("col: "+str(col))
-                depth_col = depth_lst[col]
-                print("depth_col: " + str(depth_col))
-                heapq.heappush(H,depth_col)
-                print("H: ")
-                print(H)
+                if matrix[r][col] == 1:
+                    depth_col = depth_lst[col]
+                    heapq.heappush(H,depth_col)
         heapq.heappush(H,1+max(depth_lst[c1], depth_lst[c2]))
         return Feasible(H, goal_depth_r)
     return False
@@ -55,17 +51,13 @@ goal_depth: goal of the depth, list of length m
 depth_lst: input depth for each column of matrix, list of length n
 '''
 def Rand_Greedy_Algorithm(matrix, goal_depth, depth_lst):
-
     m = len(matrix)  # Number of Rows
     n = len(matrix[0]) #Number of Columns
     s = n+1 #The index of the next new column
     v_c_lst = np.eye(n,n, dtype = int)  ##v_c_lst Rows: v(c), Columns different variables at play
-    counter = 0
-    while HW_Row_more_than_one(matrix, m, n) == True: ##If there exist a row in matrix
-        print("iteration: " + str(counter))
-        Printmatrix(matrix)
+    circuit_lst = []  ##v_c_lst Rows: v(c), Columns different variables at play
+    while HW_Row_more_than_one(matrix) == True: ##If there exist a row in matrix
         c = np.zeros(s*s).reshape(s, s)
-
         max_cij = 0
         max_cij_lst = []
         for j in range(1, s-1):
@@ -80,13 +72,10 @@ def Rand_Greedy_Algorithm(matrix, goal_depth, depth_lst):
                     max_cij_lst.clear()
                     max_cij = c[i,j]
                     max_cij_lst.append((i,j))
-
-        print("c:")
-        print(c)
         besti, bestj = random.choice(max_cij_lst) ##Randomly pick (i,j) such that it has max number of rows such that Feasible_Update holds
+        circuit_lst.append((besti,bestj))
         depth_s = max(depth_lst[besti],depth_lst[bestj])
         depth_lst.append(depth_s)
-
         for row in range(m):
             if Feasible_Update(matrix, goal_depth[row], depth_lst,s, besti,bestj,row)==True:
                 matrix[row][besti] = 0
@@ -94,23 +83,27 @@ def Rand_Greedy_Algorithm(matrix, goal_depth, depth_lst):
                 matrix[row].append(1)
             else:
                 matrix[row].append(0)
-
         vector = np.bitwise_xor(v_c_lst[besti], v_c_lst[bestj])
-        v_c_lst = np.append(v_c_lst,vector)
+        v_c_lst = np.append(v_c_lst, [vector], axis=0)
         s = s+1
-        counter +=1
-    return v_c_lst, depth_lst
+    return matrix, v_c_lst, depth_lst, circuit_lst
 
 
 
 matrix = [[1,0,1,1], [0,1,1,1], [1,1,1,1], [1,1,0,1]]
 goal_depth = [2,3,4,3]
 depth_lst = [0,2,1,0]
-#v_c_lst, depth_lst = Rand_Greedy_Algorithm(matrix, goal_depth,depth_lst)
-m = 4
-n = 4
+matrix, v_c_lst, depth_lst, circuit_lst = Rand_Greedy_Algorithm(matrix, goal_depth,depth_lst)
+print("matrix: ")
+Printmatrix(matrix)
+print("v_c_lst: ")
+print(v_c_lst)
+print("depth_lst")
+print(depth_lst)
+print("circuit_lst")
+print(circuit_lst)
 
-i = 1
-j= 3
-row = 1
-Feasible_Update(matrix, goal_depth[row], depth_lst, n+1, i, j, row)
+
+# for row in range(m):
+#     print(Feasible_Update(matrix, goal_depth[row], depth_lst, n+1, i, j, row))
+#Feasible_Update(matrix, goal_depth[row], depth_lst, n+1, i, j, row)
