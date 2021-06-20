@@ -3,6 +3,8 @@ import random
 import heapq
 from util import *
 
+
+'''Check if the Row has and row that is more than hamming weight 1.'''
 def HW_Row_more_than_one(matrix):
     m = len(matrix)  # Number of Rows
     n = len(matrix[0])  # Number of Columns
@@ -31,8 +33,20 @@ def Feasible(H, gd):
         return True
     return False
 
-
+'''
+Input: 
+matrix: binary matrix
+goal_depth_r: goal depth for row r
+depth_lst: depth of each column in matrix
+s: the index for the next column
+c1: column 1 
+c2: column 2
+r: the row that is of concern
+Output: 
+True if variables of depths in Priority Queue H can be calculated(i.e XOR) to be within the goal depth
+'''
 def Feasible_Update(matrix, goal_depth_r, depth_lst, s, c1,c2,r):
+    #Initialize the Priority queue.
     if matrix[r][c1] == 1 and matrix[r][c2] == 1:
         H = []
         for col in range(s-1):
@@ -49,6 +63,11 @@ Input:
 matrix: a binary matrix of mxn 
 goal_depth: goal of the depth, list of length m 
 depth_lst: input depth for each column of matrix, list of length n
+Output: 
+matrix: final matrix
+v_c_lst: matrix with all the variable per column
+depth_lst: depth of each column 
+circuit_lst: the column that has been added for each iteration
 '''
 def Rand_Greedy_Algorithm(matrix, goal_depth, depth_lst):
     m = len(matrix)  # Number of Rows
